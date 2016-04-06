@@ -10,13 +10,12 @@ app.use(session({
     resave: false,
     secret: 'keyboard cat'
 }))
-app.use(express.static('static'));
+app.use(express.static('build/debug'));
 app.use(bodyParser.json());
 var request = require('request');
 var issueData = [
 
 ];
-
 app.get('/api/issues', function(req, res) {
     res.json(issueData);
 });
@@ -135,42 +134,46 @@ app.post('/api/login', function(req, res) {
                     }
                 },
                 function(error, response, result){
-                    console.log(error)
-                    if (!error && result) {
-                        var body = JSON.parse(result);
-                        if (body.issues && body.issues.length) {
-                            req.session.user = {
-                                username: username,
-                                password: password
-                            };
-                            var len = body.issues.length;
-                            var rs = [];
-                            for (var i =0; i < len; i++) {
-                                var tmp = {
-                                    key: body.issues[i].key,
-                                    summary: body.issues[i].fields.summary,
-                                    component: '',
-                                    version: '',
-                                    result: body.issues[i].fields.status.name === 'In Progress' ? '50 %' : 'Completed',
-                                    note: ''
+                    console.log(error);
+                    console.log(response.statusCode);
+                    if(response.statusCode === 200){
+                        if (!error && result) {
+                            var body = JSON.parse(result);
+                            if (body.issues && body.issues.length) {
+                                req.session.user = {
+                                    username: username,
+                                    password: password
                                 };
-                                var componentLen = body.issues[i].fields.components.length;
-                                for (var j =0; j < componentLen; j++) {
-                                    tmp.component += tmp.component ? ', ' + body.issues[i].fields.components[j].name : body.issues[i].fields.components[j].name;
+                                var len = body.issues.length;
+                                var rs = [];
+                                for (var i =0; i < len; i++) {
+                                    var tmp = {
+                                        key: body.issues[i].key,
+                                        summary: body.issues[i].fields.summary,
+                                        component: '',
+                                        version: '',
+                                        result: body.issues[i].fields.status.name === 'In Progress' ? '50 %' : 'Completed',
+                                        note: ''
+                                    };
+                                    var componentLen = body.issues[i].fields.components.length;
+                                    for (var j =0; j < componentLen; j++) {
+                                        tmp.component += tmp.component ? ', ' + body.issues[i].fields.components[j].name : body.issues[i].fields.components[j].name;
+                                    }
+                                    var versionLen = body.issues[i].fields.versions.length;
+                                    for (var k =0; k < versionLen; k++) {
+                                        tmp.version += tmp.version ? ', ' + body.issues[i].fields.versions[k].name : body.issues[i].fields.versions[k].name;
+                                    }
+                                    rs.push(tmp)
                                 }
-                                var versionLen = body.issues[i].fields.versions.length;
-                                for (var k =0; k < versionLen; k++) {
-                                    tmp.version += tmp.version ? ', ' + body.issues[i].fields.versions[k].name : body.issues[i].fields.versions[k].name;
-                                }
-                                rs.push(tmp)
+                                cback(null, rs);
+                            } else {
+                                cback(null, []);
                             }
-                            cback(null, rs);
                         } else {
-                            cback(null, []);
+                            res.json([]);
                         }
-
-                    } else {
-                        res.json([])
+                    }else{
+                        cback(true);
                     }
                 })
         },
@@ -185,46 +188,54 @@ app.post('/api/login', function(req, res) {
                 },
                 function(error, response, result){
                     console.log(error)
-                    if (!error && result) {
-                        var body = JSON.parse(result);
-                        if (body.issues && body.issues.length) {
-                            req.session.user = {
-                                username: username,
-                                password: password
-                            };
-                            var len = body.issues.length;
-                            var rs = [];
-                            for (var i =0; i < len; i++) {
-                                var tmp = {
-                                    key: body.issues[i].key,
-                                    summary: body.issues[i].fields.summary,
-                                    component: '',
-                                    version: '',
-                                    result: body.issues[i].fields.status.name === 'In Progress' ? '50 %' : 'Completed',
-                                    note: ''
+                    console.log(response.statusCode);
+                    if(response.statusCode === 200){
+                        if (!error && result) {
+                            var body = JSON.parse(result);
+                            if (body.issues && body.issues.length) {
+                                req.session.user = {
+                                    username: username,
+                                    password: password
                                 };
-                                var componentLen = body.issues[i].fields.components.length;
-                                for (var j =0; j < componentLen; j++) {
-                                    tmp.component += tmp.component ? ', ' + body.issues[i].fields.components[j].name : body.issues[i].fields.components[j].name;
+                                var len = body.issues.length;
+                                var rs = [];
+                                for (var i =0; i < len; i++) {
+                                    var tmp = {
+                                        key: body.issues[i].key,
+                                        summary: body.issues[i].fields.summary,
+                                        component: '',
+                                        version: '',
+                                        result: body.issues[i].fields.status.name === 'In Progress' ? '50 %' : 'Completed',
+                                        note: ''
+                                    };
+                                    var componentLen = body.issues[i].fields.components.length;
+                                    for (var j =0; j < componentLen; j++) {
+                                        tmp.component += tmp.component ? ', ' + body.issues[i].fields.components[j].name : body.issues[i].fields.components[j].name;
+                                    }
+                                    var versionLen = body.issues[i].fields.versions.length;
+                                    for (var k =0; k < versionLen; k++) {
+                                        tmp.version += tmp.version ? ', ' + body.issues[i].fields.versions[k].name : body.issues[i].fields.versions[k].name;
+                                    }
+                                    rs.push(tmp)
                                 }
-                                var versionLen = body.issues[i].fields.versions.length;
-                                for (var k =0; k < versionLen; k++) {
-                                    tmp.version += tmp.version ? ', ' + body.issues[i].fields.versions[k].name : body.issues[i].fields.versions[k].name;
-                                }
-                                rs.push(tmp)
+                                cback(null, rs);
+                            } else {
+                                cback(null, []);
                             }
-                            cback(null, rs);
                         } else {
-                            cback(null, []);
+                            res.json([])
                         }
-
-                    } else {
-                        res.json([])
+                    }else{
+                        cback(true);
                     }
                 })
         }
     }, function(err, rs){
-        res.json(rs)
+        if(err){
+            res.json({code: -1})
+        }else{
+            res.json(rs)
+        }
     })
 });
 
